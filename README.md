@@ -1,4 +1,4 @@
-# Chess Python Implementation
+# Object-Oriented Chess Implementation in Python
 Implementation of chess for CPSC 327 (Object Oriented Programming) at Yale by Christie Yu and Matt Udry.
 
 ## Project Description
