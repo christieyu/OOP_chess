@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Object-Oriented Checkers Implementation in Python
 Implementation of checkers for CPSC 327 (Object Oriented Programming) at Yale by Christie Yu and Matt Udry.
 
@@ -52,3 +53,7 @@ Finally, we used a **command pattern** to keep track of the entire board’s sta
 
 ## UML Diagram
 ![Checkers UML diagram](https://user-images.githubusercontent.com/43098796/117768323-3989ac00-b200-11eb-9097-19788a522fd0.png)
+=======
+# Chess Python Implementation
+Implementation of chess for CPSC 327 (Object Oriented Programming) at Yale.
+>>>>>>> parent of a8c4108 (Update README.md)
