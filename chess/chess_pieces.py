@@ -21,7 +21,9 @@ class ChessPiece(Piece):
                 cursor = adj_coord
             if isinstance(self._get_adjacent(board, cursor, direction), ChessPiece) and self._get_adjacent(board, cursor, direction).color != self.color:
                 adj_coord = self._get_adjacent(board, cursor, direction, True)
-                possible_moves.append(ChessMove(self.location, adj_coord))
+                move = ChessMove(self.location, adj_coord)
+                move.captured = self._get_adjacent(board, cursor, direction)
+                possible_moves.append(move)
         return possible_moves
 
 class Pawn(ChessPiece):
@@ -37,7 +39,7 @@ class Pawn(ChessPiece):
             self.directions_capture = [(-1, 1), (-1, -1)]
         self.already_moved = False
         self.infinite = False
-        self.jump = False
+        self.value = 1
 
     def calculate_moves(self, board):
         possible_moves = []
@@ -55,7 +57,9 @@ class Pawn(ChessPiece):
         for direction in self.directions_capture:
             if isinstance(self._get_adjacent(board, self.location, direction), ChessPiece) and self._get_adjacent(board, self.location, direction).color != self.color:
                 adj_coord = self._get_adjacent(board, self.location, direction, True)
-                possible_moves.append(ChessMove(self.location, adj_coord))
+                move = ChessMove(self.location, adj_coord)
+                move.captured = self._get_adjacent(board, self.location, direction)
+                possible_moves.append(move)
         return possible_moves
 
     def __str__(self):
@@ -66,7 +70,7 @@ class Rook(ChessPiece):
         super().__init__(*args, **kwargs)
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         self.infinite = True
-        self.jump = False
+        self.value = 5
 
     def __str__(self):
         return u'♜' if self.color == "black" else u'♖'
@@ -76,7 +80,7 @@ class Knight(ChessPiece):
         super().__init__(*args, **kwargs)
         self.directions = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)]
         self.infinite = False
-        self.jump = True
+        self.value = 3
 
     def __str__(self):
         return u'♞' if self.color == "black" else u'♘'
@@ -86,7 +90,7 @@ class Bishop(ChessPiece):
         super().__init__(*args, **kwargs)
         self.directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
         self.infinite = True
-        self.jump = False
+        self.value = 3
 
     def __str__(self):
         return u'♝' if self.color == "black" else u'♗'
@@ -96,7 +100,7 @@ class Queen(ChessPiece):
         super().__init__(*args, **kwargs)
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         self.infinite = True
-        self.jump = False
+        self.value = 9
 
     def __str__(self):
         return u'♛' if self.color == "black" else u'♕'
@@ -106,7 +110,7 @@ class King(ChessPiece):
         super().__init__(*args, **kwargs)
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         self.infinite = False
-        self.jump = False
+        self.value = 100
 
     def __str__(self):
         return u'♚' if self.color == "black" else u'♔'

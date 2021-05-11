@@ -4,8 +4,9 @@
 from shared.moves import Move
 
 class ChessMove(Move):
-    def __init(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.captured = None
 
     def __str__(self):
         beginning = self._convert_to_letter(self.beginning)

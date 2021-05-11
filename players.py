@@ -6,7 +6,7 @@ class PlayerState:
     def __init__(self, CLI):
         self.CLI = CLI
         self.moves = []
-        self.pieces_left = True
+        self.win_met = False
 
     def toggle_color(self):
         pass

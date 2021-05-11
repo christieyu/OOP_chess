@@ -2,7 +2,7 @@
 # CPSC 327 (Object Oriented Programming) Homework 4
 
 from shared.board import Board
-from .checkers_pieces import Pawn, King
+from .checkers_pieces import CheckersPiece, Pawn, King
 from .checkers_moves import CheckersMove, Simple, Jump
 
 class CheckersBoard(Board):
@@ -64,6 +64,13 @@ class CheckersBoard(Board):
 
     def _check_king(self, piece):
         """If a pawn has reached the end of the board, promote it to king."""
-        c = piece.location
-        if (c[0] == 0 and piece.color == "white") or (c[0] == 7 and piece.color == "black"):
-            self.board[c[0]][c[1]] = King(piece.color, c)
+        if (piece.location[0] == 0 and piece.color == "white") or (piece.location[0] == 7 and piece.color == "black"):
+            self.board[piece.location[0]][piece.location[1]] = King(piece.color, piece.location)
+
+    def check_win(self, player_state):
+        # checks whole board for piece matching player's color
+        for row in range(len(self.board)):
+            for col in range(len(self.board[row])):
+                if isinstance(self.board[row][col], CheckersPiece) and self.board[row][col].color == player_state.color:
+                    return False
+        return True

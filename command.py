@@ -77,6 +77,7 @@ class CLI:
             move = random.choice(self.player_state.moves)
             if self.board.check_movability([move], self.player_state.moves) == True:
                 break
+        print(move)
         move = PlayerMove(self.turn, self.player_state, move, copy.deepcopy(self.board))
         self.move_history.append(move)
         return move
@@ -86,6 +87,7 @@ class CLI:
         greedy_move_choices = self.board.return_greedy_moves(self.player_state.moves)
         # choose a random move from list
         move = random.choice(greedy_move_choices)
+        print(move)
         move = PlayerMove(self.turn, self.player_state, move, copy.deepcopy(self.board))
         self.move_history.append(move)
         return move
@@ -96,13 +98,13 @@ class CLI:
     def _update_moveset(self):
         """Collects all possible moves of the current player."""
         total_moves = []
-        self.player_state.pieces_left = False
+        # checks whether win conditions are met
+        self.player_state.win_met = self.board.check_win(self.player_state)
         # checks whole board for piece matching player's color
         for row in range(len(self.board.board)):
             for col in range(len(self.board.board[row])):
                 if isinstance(self.board.board[row][col], Piece) and self.board.board[row][col].color == self.player_state.color:
-                    # update moveset and whether there are pieces left of that color
-                    self.player_state.pieces_left = True
+                    # update moveset
                     possible_moves = self.board.calculate_moves((row, col), True)
                     if len(possible_moves) > 0:
                         for move in possible_moves:
@@ -141,8 +143,8 @@ class CLI:
 
     def _check_victory_draw(self):
         """Checks win conditions and changes current player's turn."""
-        # victory conditions (no pieces left)
-        if self.player_state.pieces_left == False:
+        # victory conditions (no pieces left for checkers or no king left for chess)
+        if self.player_state.win_met == True:
             self.player_state.toggle_color()
             print(f"{self.player_state} has won")
             sys.exit(0)
