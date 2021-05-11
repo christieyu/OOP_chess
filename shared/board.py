@@ -24,3 +24,6 @@ class Board:
         col = ord(col) - 96
         row = int(row)
         return (row - 1, col - 1)
+
+    def check_movability(self, possible_moves, total_moves):
+        return True

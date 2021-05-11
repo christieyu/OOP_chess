@@ -24,6 +24,17 @@ class CheckersBoard(Board):
             return False
         return True
 
+    def return_greedy_moves(self, total_moves):
+        greedy_move_length = -1
+        greedy_move_choices = []
+        for move in total_moves:
+            if len(move.eliminated) > greedy_move_length:   # if more elims than previously, reset list
+                greedy_move_length = len(move.eliminated)
+                greedy_move_choices = [move]
+            elif len(move.eliminated) == greedy_move_length:
+                greedy_move_choices.append(move)            # otherwise append to list
+        return greedy_move_choices
+
     def calculate_moves(self, position, already_coords=False):
         """Given the user's selected position, returns possible moves as a list."""
         row, col = self._convert_to_coord(position) if already_coords == False else position

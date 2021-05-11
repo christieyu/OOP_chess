@@ -4,24 +4,10 @@
 from shared.moves import Move
 
 class ChessMove(Move):
-    pass
+    def __init(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-class OneStep(ChessMove):
-    """For pawns, kings. Moves the piece one step in some direction."""
-    pass
-
-class TwoStep(ChessMove):
-    """For opening pawns. Moves the piece two steps in forward direction."""
-    pass
-
-class Straight(ChessMove):
-    """For rooks, queens. Moves the piece in some direction up to as far as allowed."""
-    pass
-
-class Diagonal(ChessMove):
-    """For bishops, queens. Moves the piece in some direction up to as far as allowed."""
-    pass
-
-class L(ChessMove):
-    """For knights. Moves the piece in an L-shape, allowing jumps over other pieces."""
-    pass
+    def __str__(self):
+        beginning = self._convert_to_letter(self.beginning)
+        end = self._convert_to_letter(self.end)
+        return f"move: {beginning}->{end}"

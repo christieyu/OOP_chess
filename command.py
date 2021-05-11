@@ -22,7 +22,7 @@ class CLI:
         self.move_history = []
         # board setup
         self.turn = 1
-        self.board = CheckersBoard(sys.argv) if len(sys.argv) > 1 and sys.argv[1] == "checkers" else ChessBoard(sys.argv)
+        self.board = CheckersBoard() if len(sys.argv) > 1 and sys.argv[1] == "checkers" else ChessBoard()
         self._update_moveset()
         # strategy pattern setup
         self._choices = {
@@ -42,22 +42,25 @@ class CLI:
 
     def _human_moves(self):
         """If player is human, prints a piece's possible moves and requests selection."""
-        position = input("Select a piece to move\n")
-        row, col = self.board._convert_to_coord(position)
-        # check if no piece at position
-        if isinstance(self.board.board[row][col], Piece) == False:
-            print("No piece at that location")
-            return
-        # check if player's piece
-        if self.board.board[row][col].color != self.player_state.color:
-            print("That is not your piece")
-            return
-        # check if no possible moves or possible jumps not selected
-        possible_moves = self.board.calculate_moves(position)
-        if len(possible_moves) == 0 or self.board.check_movability(possible_moves, self.player_state.moves) == False:
-            print("That piece cannot move")
-            return
-        # otherwise move is valid
+        while True:
+            position = input("Select a piece to move\n")
+            row, col = self.board._convert_to_coord(position)
+            # check if no piece at position
+            if isinstance(self.board.board[row][col], Piece) == False:
+                print("No piece at that location")
+                continue
+            # check if player's piece
+            if self.board.board[row][col].color != self.player_state.color:
+                print("That is not your piece")
+                continue
+            # check if no possible moves or possible jumps not selected
+            possible_moves = [move for move in self.player_state.moves if move.beginning == (row, col)]
+            if len(possible_moves) == 0 or self.board.check_movability(possible_moves, self.player_state.moves) == False:
+                print("That piece cannot move")
+                continue
+            # otherwise move is valid
+            else:
+                break
         for i, move in enumerate(possible_moves):
             print(f"{i}: {move}")
         choice = input("Select a move by entering the corresponding index\n")
@@ -80,14 +83,7 @@ class CLI:
 
     def _greedy_moves(self):
         """Goes through possible moves and chooses randomly from the greediest moveset."""
-        greedy_move_length = -1
-        greedy_move_choices = []
-        for move in self.player_state.moves:
-            if len(move.eliminated) > greedy_move_length:   # if more elims than previously, reset list
-                greedy_move_length = len(move.eliminated)
-                greedy_move_choices = [move]
-            elif len(move.eliminated) == greedy_move_length:
-                greedy_move_choices.append(move)            # otherwise append to list
+        greedy_move_choices = self.board.return_greedy_moves(self.player_state.moves)
         # choose a random move from list
         move = random.choice(greedy_move_choices)
         move = PlayerMove(self.turn, self.player_state, move, copy.deepcopy(self.board))

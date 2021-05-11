@@ -45,10 +45,6 @@ class CheckersPiece(Piece):
                     possible_moves.append(jump)                                                     # if no branches, return this jump as destination
         return possible_moves
 
-    def _get_adjacent(self, board, start: tuple, direction: tuple, return_coord=False):
-        """Fetches obj or value at location in a given starting point and direction (if it exists)"""
-        return self._get_board(board, (start[0] + direction[0], start[1] + direction[1]), return_coord)
-
     def _check_jump(self, board, start: tuple, direction: tuple):
         """Given a starting location and direction (both coordinate tuples), returns a Jump object (for a single jump)
         If no jumps are possible, returns None."""

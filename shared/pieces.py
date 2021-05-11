@@ -16,3 +16,7 @@ class Piece:
         if return_coord:
             return (coords[0], coords[1])               # return the coordinates at board location
         return board[coords[0]][coords[1]]              # return the value at board location    
+
+    def _get_adjacent(self, board, start: tuple, direction: tuple, return_coord=False):
+        """Fetches obj or value at location in a given starting point and direction (if it exists)"""
+        return self._get_board(board, (start[0] + direction[0], start[1] + direction[1]), return_coord)
