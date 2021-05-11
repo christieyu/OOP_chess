@@ -16,6 +16,10 @@ class WhiteState(PlayerState):
         super().__init__(CLI)
         self.color = "white"
         self.player = p1
+        self.depth = -1
+        if p1[:-1] == "minimax":
+            self.player = "minimax"
+            self.depth = p1[len(p1) - 1]
 
     def __str__(self):
         return "white"
@@ -29,6 +33,10 @@ class BlackState(PlayerState):
         super().__init__(CLI)
         self.color = "black"
         self.player = p2
+        self.depth = -1
+        if p2[:-1] == "minimax":
+            self.player = "minimax"
+            self.depth = p2[len(p2) - 1]
 
     def __str__(self):
         return "black"

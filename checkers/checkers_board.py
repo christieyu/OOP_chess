@@ -19,6 +19,7 @@ class CheckersBoard(Board):
                       [0, Pawn("white", (7, 1)), 0, Pawn("white", (7, 3)), 0, Pawn("white", (7, 5)), 0, Pawn("white", (7, 7))]]
 
     def check_movability(self, possible_moves, total_moves):
+        """For checkers, if there are still jumps on the board, you cannot make a simple move."""
         if isinstance(possible_moves[0], Simple) and True in [isinstance(move, Jump) for move in total_moves]:
             return False
         return True

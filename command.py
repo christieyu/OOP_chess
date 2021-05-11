@@ -23,13 +23,13 @@ class CLI:
         # board setup
         self.turn = 1
         self.board = CheckersBoard(sys.argv) if len(sys.argv) > 1 and sys.argv[1] == "checkers" else ChessBoard(sys.argv)
-        self.board.print_board()
         self._update_moveset()
         # strategy pattern setup
         self._choices = {
             "human": self._human_moves,
             "random": self._random_moves,
             "greedy": self._greedy_moves,
+            "minimax": self._minimax_moves
         }
         # get randomized seed
         with open('seed.txt', 'r') as seed_f:
@@ -94,6 +94,8 @@ class CLI:
         self.move_history.append(move)
         return move
 
+    def _minimax_moves(self):
+        pass
 
     def _update_moveset(self):
         """Collects all possible moves of the current player."""

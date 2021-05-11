@@ -11,6 +11,6 @@ class Move:
             self.end = end
 
     def _convert_to_letter(self, coord):
-        """Given numerical coordinates (e.g: 4, 1), returns coord (e.g: 'b4')."""
+        """Given numerical coordinates (e.g: (4, 1)), returns coord (e.g: 'b4')."""
         row, col = coord
         return chr(col + 96 + 1) + str(row + 1)
