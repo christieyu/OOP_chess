@@ -1,9 +1,6 @@
 # Christie Yu, Matt Udry
 # CPSC 327 (Object Oriented Programming) Homework 4
 
-from .pieces import Piece
-from .moves import Move
-
 class Board:
     def __init__(self, p1="human", p2="human", history="off"):
         self.draw_counter = 0

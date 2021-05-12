@@ -4,12 +4,10 @@
 import sys
 import random
 import copy
-from shared.board import Board
 from checkers.checkers_board import CheckersBoard
 from chess.chess_board import ChessBoard
-from players import PlayerState, WhiteState, BlackState, PlayerMove
+from players import WhiteState, BlackState, PlayerMove
 from shared.pieces import Piece
-from shared.moves import Move
 
 class CLI:
     def __init__(self):

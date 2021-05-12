@@ -3,7 +3,7 @@
 
 from shared.board import Board
 from .checkers_pieces import CheckersPiece, Pawn, King
-from .checkers_moves import CheckersMove, Simple, Jump
+from .checkers_moves import Simple, Jump
 
 class CheckersBoard(Board):
     def __init__(self, p1="human", p2="human", history="off"):

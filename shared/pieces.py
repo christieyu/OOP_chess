@@ -1,9 +1,6 @@
 # Christie Yu, Matt Udry
 # CPSC 327 (Object Oriented Programming) Homework 4
 
-import enum
-from .moves import Move
-
 class Piece:
     def __init__(self, color, location):
         self.color = color

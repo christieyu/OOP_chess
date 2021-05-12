@@ -1,7 +1,6 @@
 # Christie Yu, Matt Udry
 # CPSC 327 (Object Oriented Programming) Homework 4
 
-import enum
 from shared.pieces import Piece
 from .chess_moves import ChessMove
 
