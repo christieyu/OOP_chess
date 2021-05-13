@@ -1,5 +1,5 @@
 # Christie Yu, Matt Udry
-# CPSC 327 (Object Oriented Programming) Homework 4
+# CPSC 327 (Object Oriented Programming) Homework 5
 
 from chess.chess_pieces import ChessPiece
 import random
