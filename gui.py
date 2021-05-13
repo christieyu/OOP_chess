@@ -1,22 +1,31 @@
 # Christie Yu, Matt Udry
 # CPSC 327 (Object Oriented Programming) Homework 4
 
+from chess.chess_pieces import ChessPiece
 import random
 import copy
 import tkinter as tk
-from tkinter import Frame, Button, OptionMenu
+from tkinter import Frame, OptionMenu, PhotoImage, CENTER
+import platform
+# tk.Button requires tkmacosx to work on Macs
+if platform.system() == "Darwin":
+    from tkmacosx import Button
+else: 
+    from tkinter import Button
 
 from checkers.checkers_board import CheckersBoard
 from chess.chess_board import ChessBoard
 from players import WhiteState, BlackState, PlayerMove
 from shared.pieces import Piece
 
+# for GUI settings
 COLOR = "gray"
+IMAGE = None
 
 class GUI(Frame):
     def __init__(self):
         # undo-redo setup
-        self.history = True
+        self.undo_redo = False
         self.move_history = []
         # board setup
         self.turn = 1
@@ -70,28 +79,33 @@ class GUI(Frame):
             self.white_state = WhiteState(self, p1.get())
             self.black_state = BlackState(self, p2.get())
             self.player_state = self.white_state
+            self.undo_redo = True if undo.get() == "on" else False
             self._update_moveset()
             # destroy player select menu
-            p1_label.destroy()
-            p1_menu.destroy()
-            p2_label.destroy()
-            p2_menu.destroy()
-            button.destroy()
+            for widget in [p1_label, p1_menu, p2_label, p2_menu, undo_label, undo_menu, button]:
+                widget.destroy()
+            # init rest of GUI (main game phase)
             self._initGUI()
         # give player options (human, random, greedy, minimax)
-        p1 = tk.StringVar()
+        p1 = tk.StringVar()     # white player
         p1.set("human")
         p1_label = tk.Label(self._top_frame, text="Player on white", fg="green")
         p1_label.grid(row=2, column=0)
         p1_menu = OptionMenu(self._top_frame, p1, "human", "random", "greedy", "minimax")
         p1_menu.grid(row=3, column=0)
-        p2 = tk.StringVar()
+        p2 = tk.StringVar()     # black player
         p2.set("human")
         p2_label = tk.Label(self._top_frame, text="Player on black", fg="green")
         p2_label.grid(row=2, column=1)
         p2_menu = OptionMenu(self._top_frame, p2, "human", "random", "greedy", "minimax")
         p2_menu.grid(row=3, column=1)
-        button = Button(self._top_frame, text="OK", command=players_chosen)
+        undo = tk.StringVar()   # undo/redo option
+        undo.set("on")
+        undo_label = tk.Label(self._top_frame, text="Undo/redo on?", fg="blue")
+        undo_label.grid(row=2, column=2)
+        undo_menu = OptionMenu(self._top_frame, undo, "on", "off")
+        undo_menu.grid(row=3, column=2)
+        button = Button(self._top_frame, text="OK", command=players_chosen)     # submit button
         button.grid(row=4, column=0)
 
     def _initGUI(self):
@@ -100,9 +114,12 @@ class GUI(Frame):
             # change global color variable and change current board
             global COLOR 
             COLOR = color
-            for coord in self._button_list:
-                if (coord[0] + coord[1]) % 2 == 1:
-                    self._button_list[coord].config(highlightbackground=color)
+            self._update_board()
+        def change_piece(piece_type):
+            # change global color variable and change current board
+            global IMAGE 
+            IMAGE = piece_type
+            self._update_board()
         # populate labels
         turn_text = f"TURN " + str(self.turn) + ", CURRENT PLAYER: " + str(self.player_state).upper()
         self._turn_label.config(text=turn_text)
@@ -114,13 +131,25 @@ class GUI(Frame):
                 text = self.board.board[i][j] if not isinstance(self.board.board[i][j], int) else ""
                 coord = (i, j)
                 # buttons call "piece_selected" function when clicked
-                self._button_list[(i, j)] = Button(self._board_frame, text=text, height=3, width=6, highlightbackground=color, command=lambda coord=coord: self._piece_selected(coord))
+                self._button_list[(i, j)] = Button(self._board_frame, text=text, height=60, width=60, bg=color, command=lambda coord=coord: self._piece_selected(coord))
                 self._button_list[(i, j)].grid(row=i, column=j)
         # create color choice buttons
-        Button(self._controls_frame, text="GREEN MODE", fg="green", highlightbackground="pale green", command=lambda: change_color("green")).grid(row=4, column=0)
-        Button(self._controls_frame, text="RED MODE", fg="red", highlightbackground="light salmon", command=lambda: change_color("red")).grid(row=5, column=0)
-        Button(self._controls_frame, text="BLUE MODE", fg="blue", highlightbackground="powder blue", command=lambda: change_color("blue")).grid(row=6, column=0)
+        Button(self._controls_frame, text="GREEN MODE", fg="green", bg="DarkSeaGreen1", command=lambda: change_color("DarkSeaGreen1")).grid(row=4, column=0)
+        Button(self._controls_frame, text="RED MODE", fg="red", bg="LightPink1", command=lambda: change_color("LightPink1")).grid(row=5, column=0)
+        Button(self._controls_frame, text="BLUE MODE", fg="blue", bg="LightSkyBlue1", command=lambda: change_color("LightSkyBlue1")).grid(row=6, column=0)
+        # create piece choice buttons
+        Button(self._controls_frame, text="REGULAR PIECES", fg="white", bg="black", command=lambda: change_piece("regular")).grid(row=4, column=1)
+        Button(self._controls_frame, text="FANCY PIECES", fg="white", bg="brown", command=lambda: change_piece("fancy")).grid(row=5, column=1)
+        # create undo/redo buttons
+        if self.undo_redo == True:
+            Button(self._controls_frame, text="UNDO", fg="white", bg="red", command=lambda: self._do_history("undo")).grid(row=7, column=1)
+            Button(self._controls_frame, text="REDO", fg="white", bg="green", command=lambda: self._do_history("redo")).grid(row=8, column=1)
+            Button(self._controls_frame, text="NEXT", fg="white", bg="blue", command=lambda: self._do_history("next")).grid(row=9, column=1)
         # AI players
+        self._AI_players_move()
+
+    def _AI_players_move(self):
+        # AI players control
         if self.player_state.player == "random":
             move = self._random_moves()
             self._move_selected(move=move)
@@ -141,25 +170,29 @@ class GUI(Frame):
             for coord in self._button_list:
                 self._button_list[coord].destroy()
         else:
-            # update turn text
-            turn_text = f"TURN " + str(self.turn) + ", CURRENT PLAYER: " + str(self.player_state).upper()
-            self._turn_label.config(text=turn_text)
-            # reset board colors
-            for coord in self._button_list:
-                row, col = coord
-                color = "white" if (row + col) % 2 == 0 else COLOR
-                text = str(self.board.board[row][col]) if not isinstance(self.board.board[row][col], int) else ""
-                # set buttons to call "piece_selected" function again
-                self._button_list[(row, col)].config(text=text, height=3, width=6, highlightbackground=color, command=lambda coord=coord: self._piece_selected(coord))
+            self._update_board()
             # AI players
-            if self.player_state.player == "random":
-                move = self._random_moves()
-                self._move_selected(move=move)
-            elif self.player_state.player == "greedy":
-                move = self._greedy_moves()
-                self._move_selected(move=move)
-            elif self.player_state.player == "minimax":
-                pass
+            if self.undo_redo == False:
+                self._AI_players_move()
+    
+    def _update_board(self):
+        # update turn text
+        turn_text = f"TURN " + str(self.turn) + ", CURRENT PLAYER: " + str(self.player_state).upper()
+        self._turn_label.config(text=turn_text)
+        # reset board colors
+        for coord in self._button_list:
+            row, col = coord
+            color = "white" if (row + col) % 2 == 0 else COLOR
+            text = str(self.board.board[row][col]) if not isinstance(self.board.board[row][col], int) else ""
+            if IMAGE != None:
+                if isinstance(self.board.board[row][col], ChessPiece):
+                    image_name = f"./chess/chess_pieces/" + IMAGE + "/" + str(self.board.board[row][col].color) + "/" + self.board.board[coord[0]][coord[1]].type + ".png"
+                    image = PhotoImage(file=image_name)
+                    self._button_list[coord].config(image=image, compound=CENTER)
+                elif isinstance(self.board.board[row][col], int):
+                    self._button_list[coord].config(image="")
+            # set buttons to call "piece_selected" function again
+            self._button_list[coord].config(text=text, height=60, width=60, bg=color, command=lambda coord=coord: self._piece_selected(coord))
 
     def _piece_selected(self, coords):
         """Once a piece has been selected by a human player, highlight possible moves and make buttons re-clickable for move selection."""
@@ -176,9 +209,9 @@ class GUI(Frame):
         else:
             self._error_label.config(text="")
             # highlight selected piece and show possible moves
-            self._button_list[(row, col)].config(highlightbackground="blue")
+            self._button_list[(row, col)].config(bg="blue")
             for move in possible_moves:
-                self._button_list[(move.end[0], move.end[1])].config(highlightbackground="yellow")
+                self._button_list[(move.end[0], move.end[1])].config(bg="yellow")
             self._instruction_label.config(text="Select a move.")
             self._movepool = possible_moves
             # set buttons to call "move_selected" function
@@ -187,7 +220,6 @@ class GUI(Frame):
     
     def _move_selected(self, coords=None, move=None):
         """Once human player has selected move, execute it and reset to a new turn."""
-        # execute move
         if move:
             self._move = move
         else:
@@ -196,9 +228,11 @@ class GUI(Frame):
                     self._move = move
         text = str(self._move) + " was selected."
         self._move_label.config(text=text)
-        self.board.execute_move(self._move)
+        move = PlayerMove(self.turn, self.player_state, self._move, copy.deepcopy(self.board))
         # for undo-redo
-        self.move_history.append(PlayerMove(self.turn, self.player_state, self._move, copy.deepcopy(self.board)))
+        self.move_history.append(move)
+        # execute move
+        move.execute(self.board)
         # new turn
         self._new_turn()
 
@@ -240,28 +274,28 @@ class GUI(Frame):
                             total_moves.append(move)
         self.player_state.moves = total_moves
 
-    def _do_history(self):
-        """Presents undo/redo/next options at beginning of turn. Returns False if history is disable or "next"
-        is selected, otherwise returns True (skipping usual move operations for undo/redo)"""
-        if not self.history:
-            return False
-        op = input("undo, redo, or next\n")
+    def _do_history(self, input):
+        """Presents undo/redo/next options at beginning of turn."""
         try:
-            if op == "undo":
+            if input == "undo":
                 self.turn -= 1
                 last_move = self.move_history[self.turn - 1]
                 self.board = copy.deepcopy(last_move.board_state)
                 self.player_state = last_move.player_state
+                self._update_board()
                 return True
-            elif op == "redo":
+            elif input == "redo":
                 next_move = self.move_history[self.turn - 1]
                 next_move.execute(self.board)
                 self.turn += 1
                 self.player_state.toggle_color()
+                self._update_board()
                 return True
+            elif input == "next":
+                self._AI_players_move()
         except IndexError:
-            return True                                                   # if undo/redo unavailable, don't do anything
-        self.move_history = self.move_history[:self.turn-1]               # if new history branch, cut off old paths
+            return True        # if undo/redo unavailable, don't do anything
+        self.move_history = self.move_history[:self.turn-1]     # if new history branch, cut off old paths
         return False
 
     def _check_victory_draw(self):
@@ -270,14 +304,14 @@ class GUI(Frame):
         if self.player_state.win_met == True:
             self.player_state.toggle_color()
             text = f"{self.player_state} has won"
-            self._error_label.config(text=text, highlightbackground="yellow")
+            self._error_label.config(text=text, bg="yellow")
             return True
         # draw conditions (no moves left or 50 turns without capturing)
         elif len(self.player_state.moves) == 0:
-            self._error_label.config(text="draw", highlightbackground="yellow")
+            self._error_label.config(text="draw", bg="yellow")
             return True
         if self.board.draw_counter >= 50:
-            self._error_label.config(text="draw", highlightbackground="yellow")
+            self._error_label.config(text="draw", bg="yellow")
             return True
         return False
 

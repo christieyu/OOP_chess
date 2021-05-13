@@ -28,6 +28,7 @@ class ChessPiece(Piece):
 class Pawn(ChessPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.type = "pawn"
         if self.color == "black":
             self.directions = [(1, 0)]
             self.directions_first = [(2, 0)]
@@ -67,6 +68,7 @@ class Pawn(ChessPiece):
 class Rook(ChessPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.type = "rook"
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         self.infinite = True
         self.value = 5
@@ -77,6 +79,7 @@ class Rook(ChessPiece):
 class Knight(ChessPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.type = "knight"
         self.directions = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)]
         self.infinite = False
         self.value = 3
@@ -87,6 +90,7 @@ class Knight(ChessPiece):
 class Bishop(ChessPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.type = "bishop"
         self.directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
         self.infinite = True
         self.value = 3
@@ -97,6 +101,7 @@ class Bishop(ChessPiece):
 class Queen(ChessPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.type = "queen"
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         self.infinite = True
         self.value = 9
@@ -107,6 +112,7 @@ class Queen(ChessPiece):
 class King(ChessPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.type = "king"
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         self.infinite = False
         self.value = 100
