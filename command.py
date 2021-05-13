@@ -91,7 +91,41 @@ class CLI:
         return move
 
     def _minimax_moves(self):
+        # return a move given the player state!
         pass
+
+    def _minimax_search(node, depth, minmax):
+        """Does recursive search for minimax. Node is a board, minmax is a bool where True=calculate max for this node, 
+        False=calculate min. Returns a tuple of (Move, score) where score is an int."""
+        pass
+
+    def _minimax_evaluate(self, player_state, board):
+        """Evaluates score of given board for given player_state. Returns an int or +inf/-inf.
+        Note: All of player_state and board's attributes must be updated before using."""
+        # check if this board has a winner
+        black_win = board.check_win(self.black_state)
+        white_win = board.check_win(self.white_state)
+        if white_win or black_win:
+            if (player_state.color == "white" and white_win) or (player_state.color == "black" and black_win):
+                return float('inf')                     # winning board for this player_state
+            return float('-inf')                        # losing board for this player_state
+        # check if this board has a draw
+        if len(player_state.moves) == 0 or board.draw_counter >= 50:
+            return 0
+        # if neither, calculate the score for this player_state
+        black_total = 0
+        white_total = 0
+        for row in self.board.board:
+            for tile in row:
+                if isinstance(tile, Piece):
+                    if tile.color == "white":
+                        white_total += tile.value
+                    else:
+                        black_total += tile.value
+        if player_state.color == "white":
+            return white_total - black_total
+        return black_total - white_total
+
 
     def _update_moveset(self):
         """Collects all possible moves of the current player."""

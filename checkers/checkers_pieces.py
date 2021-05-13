@@ -55,6 +55,10 @@ class CheckersPiece(Piece):
         return None
 
 class Pawn(CheckersPiece):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.value = 1
+        
     def __str__(self):
         return u'⚈' if self.color == "black" else u'⚆'
 
@@ -65,6 +69,7 @@ class King(CheckersPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)      
         self.moves = WHITE_MOVES + BLACK_MOVES
+        self.value = 2
 
     def __str__(self):
         return u'⚉' if self.color == "black" else u'⚇'
