@@ -244,7 +244,6 @@ class GUI(Frame):
             move = random.choice(self.player_state.moves)
             if self.board.check_movability([move], self.player_state.moves) == True:
                 break
-        self.move_history.append(PlayerMove(self.turn, self.player_state, move, copy.deepcopy(self.board)))
         return move
 
     def _greedy_moves(self):
@@ -252,7 +251,6 @@ class GUI(Frame):
         greedy_move_choices = self.board.return_greedy_moves(self.player_state.moves)
         # choose a random move from list
         move = random.choice(greedy_move_choices)
-        self.move_history.append(PlayerMove(self.turn, self.player_state, move, copy.deepcopy(self.board)))
         return move
 
     def _minimax_moves(self):
@@ -295,8 +293,6 @@ class GUI(Frame):
                 self._AI_players_move()
         except IndexError:
             return True        # if undo/redo unavailable, don't do anything
-        self.move_history = self.move_history[:self.turn-1]     # if new history branch, cut off old paths
-        return False
 
     def _check_victory_draw(self):
         """Checks win conditions and changes current player's turn."""
