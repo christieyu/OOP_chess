@@ -11,6 +11,8 @@ from chess.chess_board import ChessBoard
 from players import WhiteState, BlackState, PlayerMove
 from shared.pieces import Piece
 
+COLOR = "gray"
+
 class GUI(Frame):
     def __init__(self):
         # undo-redo setup
@@ -64,17 +66,19 @@ class GUI(Frame):
         """Presents opening screen asking for p1 and p2 player types."""
         def players_chosen():
             """Once "OK" button has been pressed, submit p1 and p2 player types and destroy interface."""
+            # set players and populate movesets
             self.white_state = WhiteState(self, p1.get())
             self.black_state = BlackState(self, p2.get())
             self.player_state = self.white_state
             self._update_moveset()
+            # destroy player select menu
             p1_label.destroy()
             p1_menu.destroy()
             p2_label.destroy()
             p2_menu.destroy()
             button.destroy()
             self._initGUI()
-
+        # give player options (human, random, greedy, minimax)
         p1 = tk.StringVar()
         p1.set("human")
         p1_label = tk.Label(self._top_frame, text="Player on white", fg="green")
@@ -92,6 +96,13 @@ class GUI(Frame):
 
     def _initGUI(self):
         """Create 64 board button widgets."""
+        def change_color(color):
+            # change global color variable and change current board
+            global COLOR 
+            COLOR = color
+            for coord in self._button_list:
+                if (coord[0] + coord[1]) % 2 == 1:
+                    self._button_list[coord].config(highlightbackground=color)
         # populate labels
         turn_text = f"TURN " + str(self.turn) + ", CURRENT PLAYER: " + str(self.player_state).upper()
         self._turn_label.config(text=turn_text)
@@ -99,12 +110,16 @@ class GUI(Frame):
         # create board
         for i in range(8):
             for j in range(8):
-                color = "white" if (i + j) % 2 == 0 else "gray"
+                color = "white" if (i + j) % 2 == 0 else COLOR
                 text = self.board.board[i][j] if not isinstance(self.board.board[i][j], int) else ""
                 coord = (i, j)
                 # buttons call "piece_selected" function when clicked
                 self._button_list[(i, j)] = Button(self._board_frame, text=text, height=3, width=6, highlightbackground=color, command=lambda coord=coord: self._piece_selected(coord))
                 self._button_list[(i, j)].grid(row=i, column=j)
+        # create color choice buttons
+        Button(self._controls_frame, text="GREEN MODE", fg="green", highlightbackground="pale green", command=lambda: change_color("green")).grid(row=4, column=0)
+        Button(self._controls_frame, text="RED MODE", fg="red", highlightbackground="light salmon", command=lambda: change_color("red")).grid(row=5, column=0)
+        Button(self._controls_frame, text="BLUE MODE", fg="blue", highlightbackground="powder blue", command=lambda: change_color("blue")).grid(row=6, column=0)
         # AI players
         if self.player_state.player == "random":
             move = self._random_moves()
@@ -117,22 +132,22 @@ class GUI(Frame):
 
     def _new_turn(self):
         """Updates player info each turn."""
+        # update game state
+        self.turn += 1
+        self.player_state.toggle_color()
+        self._update_moveset()
         # check victory conditions
         if self._check_victory_draw() == True:
             for coord in self._button_list:
                 self._button_list[coord].destroy()
         else:
-            # update game state
-            self.turn += 1
-            self.player_state.toggle_color()
-            self._update_moveset()
             # update turn text
             turn_text = f"TURN " + str(self.turn) + ", CURRENT PLAYER: " + str(self.player_state).upper()
             self._turn_label.config(text=turn_text)
             # reset board colors
             for coord in self._button_list:
                 row, col = coord
-                color = "white" if (row + col) % 2 == 0 else "gray"
+                color = "white" if (row + col) % 2 == 0 else COLOR
                 text = str(self.board.board[row][col]) if not isinstance(self.board.board[row][col], int) else ""
                 # set buttons to call "piece_selected" function again
                 self._button_list[(row, col)].config(text=text, height=3, width=6, highlightbackground=color, command=lambda coord=coord: self._piece_selected(coord))
@@ -159,6 +174,7 @@ class GUI(Frame):
         if len(possible_moves) == 0 or self.board.check_movability(possible_moves, self.player_state.moves) == False:
             self._error_label.config(text="That piece cannot move")
         else:
+            self._error_label.config(text="")
             # highlight selected piece and show possible moves
             self._button_list[(row, col)].config(highlightbackground="blue")
             for move in possible_moves:
@@ -183,7 +199,6 @@ class GUI(Frame):
         self.board.execute_move(self._move)
         # for undo-redo
         self.move_history.append(PlayerMove(self.turn, self.player_state, self._move, copy.deepcopy(self.board)))
-        self.board.print_board()
         # new turn
         self._new_turn()
 
