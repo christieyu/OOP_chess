@@ -21,7 +21,7 @@ class CLI:
         # board setup
         self.turn = 1
         self.board = CheckersBoard() if len(sys.argv) > 1 and sys.argv[1] == "checkers" else ChessBoard()
-        self._update_moveset()
+        self._update_moveset(self.player_state, self.board)
         # strategy pattern setup
         self._choices = {
             "human": self._human_moves,
@@ -91,31 +91,66 @@ class CLI:
         return move
 
     def _minimax_moves(self):
-        # return a move given the player state!
-        pass
+        score_list = []
+        self._update_moveset(self.player_state, self.board)
+        for m in self.player_state.moves:
+            score_list.append(self._minimax_search(self.board, m, self.player_state, self.player_state.depth - 1))
+        i = score_list.index(max(score_list))
+        best_move = self.player_state.moves[i]
+        print(best_move)
+        print(score_list)
+        print(self.player_state.color)
+        move = PlayerMove(self.turn, self.player_state, best_move, copy.deepcopy(self.board))
+        self.move_history.append(move)
+        return move        
 
-    def _minimax_search(node, depth, minmax):
-        """Does recursive search for minimax. Node is a board, minmax is a bool where True=calculate max for this node, 
-        False=calculate min. Returns a tuple of (Move, score) where score is an int."""
-        pass
+        
+    def _minimax_search(self, board, move, player_state, depth):
+        """Does recursive search for minimax. Takes a Board, a Move to be applied to that board, 
+        and a PlayerState (the player doing that move) and returns a integer 'score' for that given board and move."""
+        # apply move to this board
+        next_player = copy.deepcopy(player_state)
+        moved_board = copy.deepcopy(board)
+        moved_board.execute_move(move)
 
-    def _minimax_evaluate(self, player_state, board):
-        """Evaluates score of given board for given player_state. Returns an int or +inf/-inf.
-        Note: All of player_state and board's attributes must be updated before using."""
-        # check if this board has a winner
-        black_win = board.check_win(self.black_state)
-        white_win = board.check_win(self.white_state)
+        # see if this new board resulted in win/lose/draw or if depth==0. Return the appropriate score values
+        black_win = moved_board.check_win(self.black_state)
+        white_win = moved_board.check_win(self.white_state)
         if white_win or black_win:
-            if (player_state.color == "white" and white_win) or (player_state.color == "black" and black_win):
-                return float('inf')                     # winning board for this player_state
-            return float('-inf')                        # losing board for this player_state
-        # check if this board has a draw
-        if len(player_state.moves) == 0 or board.draw_counter >= 50:
+            if (self.player_state.color == "white" and white_win) or (self.player_state.color == "black" and black_win):
+                return float('inf')                                 # winning board for this player_state
+            return float('-inf')                                    # losing board for this player_state
+        if len(player_state.moves) == 0 or moved_board.draw_counter >= 50:
             return 0
-        # if neither, calculate the score for this player_state
+        if depth == 0:
+            return self._minimax_evaluate(moved_board, self.player_state)
+
+        next_player.toggle_color()                                              # old player's move has been made, switch turns
+        self._update_moveset(next_player, moved_board)                          # update the new player's possible moves
+
+        if next_player.color != self.player_state.color:
+            # max
+            best = float('-inf')
+            for move in next_player.moves:
+                s = self._minimax_search(moved_board, move, next_player, depth-1)         # s is score (int)
+                if s > best:
+                    best = s
+        else:
+            #min
+            best = float('inf')
+            for move in next_player.moves:
+                s = self._minimax_search(moved_board, move, next_player, depth-1)
+                if s < best:
+                    best = s
+        return best
+
+
+    def _minimax_evaluate(self, board, player_state):
+        """Evaluates score of given board for given player_state (DOES NOT ACCOUNT FOR WIN/LOSE/DRAW). Returns an int.
+        Note: All of player_state and board's attributes must be updated before using."""
         black_total = 0
         white_total = 0
-        for row in self.board.board:
+        for row in board.board:
             for tile in row:
                 if isinstance(tile, Piece):
                     if tile.color == "white":
@@ -126,28 +161,27 @@ class CLI:
             return white_total - black_total
         return black_total - white_total
 
-
-    def _update_moveset(self):
+    def _update_moveset(self, current_player, board):
         """Collects all possible moves of the current player."""
         total_moves = []
         # checks whether win conditions are met
-        self.player_state.win_met = self.board.check_win(self.player_state)
+        current_player.win_met = board.check_win(current_player)
         # checks whole board for piece matching player's color
-        for row in range(len(self.board.board)):
-            for col in range(len(self.board.board[row])):
-                if isinstance(self.board.board[row][col], Piece) and self.board.board[row][col].color == self.player_state.color:
+        for row in range(len(board.board)):
+            for col in range(len(board.board[row])):
+                if isinstance(board.board[row][col], Piece) and board.board[row][col].color == current_player.color:
                     # update moveset
-                    possible_moves = self.board.calculate_moves((row, col), True)
+                    possible_moves = board.calculate_moves((row, col), True)
                     if len(possible_moves) > 0:
                         for move in possible_moves:
                             total_moves.append(move)
-        self.player_state.moves = total_moves
+        current_player.moves = total_moves
 
     def _new_turn(self):
         """Updates player info each turn."""
         self.turn += 1
         self.player_state.toggle_color()
-        self._update_moveset()
+        self._update_moveset(self.player_state, self.board)
 
     def _do_history(self):
         """Presents undo/redo/next options at beginning of turn. Returns False if history is disable or "next"
