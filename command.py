@@ -93,6 +93,7 @@ class CLI:
     def _minimax_moves(self):
         # return a move given the player state!
         move = self._minimax_search(self.board, self.player_state.depth, float('-inf'), float('inf'), True)[0]
+        print(move)
         move = PlayerMove(self.turn, self.player_state, move, copy.deepcopy(self.board))
         self.move_history.append(move)
         return move

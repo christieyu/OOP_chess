@@ -157,7 +157,8 @@ class GUI(Frame):
             move = self._greedy_moves()
             self._move_selected(move=move)
         elif self.player_state.player == "minimax":
-            pass
+            move = self._minimax_moves()
+            self._move_selected(move=move)
 
     def _new_turn(self):
         """Updates player info each turn."""
@@ -254,7 +255,75 @@ class GUI(Frame):
         return move
 
     def _minimax_moves(self):
-        pass
+        # return a move given the player state!
+        move = self._minimax_search(self.board, self.player_state.depth, float('-inf'), float('inf'), True)[0]
+        return move
+
+    # inspired by https://stackoverflow.com/questions/64644532/minimax-algorithm-in-python-using-tic-tac-toe
+    def _minimax_search(self, board, depth, alpha, beta, maximizing_player):
+        """Does recursive search for minimax. Node is a board, minmax is a bool where True=calculate max for this node, 
+        False=calculate min. Returns a tuple of (Move, score) where score is an int."""
+        if depth == 0 or board.check_win(self.player_state):
+            return None, self._minimax_evaluate(self.player_state, board)
+
+        children = self.player_state.moves
+        best_move = children[0]
+        
+        if maximizing_player:
+            max_eval = float('-inf')       
+            for child in children:
+                board_copy = copy.deepcopy(board)
+                board_copy.player_state = self.black_state
+                current_eval = self._minimax_search(board_copy, int(depth) - 1, alpha, beta, False)[1]
+                if current_eval > max_eval:
+                    max_eval = current_eval
+                    best_move = child
+                alpha = max(alpha, current_eval)
+                if beta <= alpha:
+                    break
+            return best_move, max_eval
+
+        else:
+            min_eval = float('inf')
+            for child in children:
+                board_copy = copy.deepcopy(board)
+                board_copy.player_state = self.white_state
+                current_eval = self._minimax_search(board_copy, int(depth) - 1, alpha, beta, True)[1]
+                if current_eval < min_eval:
+                    min_eval = current_eval
+                    best_move = child
+                beta = min(beta, current_eval)
+                if beta <= alpha:
+                    break
+            return best_move, min_eval
+
+    def _minimax_evaluate(self, player_state, board):
+        """Evaluates score of given board for given player_state. Returns an int or +inf/-inf.
+        Note: All of player_state and board's attributes must be updated before using."""
+        # check if this board has a winner
+        black_win = board.check_win(self.black_state)
+        white_win = board.check_win(self.white_state)
+        if white_win or black_win:
+            if (player_state.color == "white" and white_win) or (player_state.color == "black" and black_win):
+                return float('inf')                     # winning board for this player_state
+            return float('-inf')                        # losing board for this player_state
+        # check if this board has a draw
+        if len(player_state.moves) == 0 or board.draw_counter >= 50:
+            return 0
+        # if neither, calculate the score for this player_state
+        black_total = 0
+        white_total = 0
+        for row in self.board.board:
+            for tile in row:
+                if isinstance(tile, Piece):
+                    if tile.color == "white":
+                        white_total += tile.value
+                    else:
+                        black_total += tile.value
+        if player_state.color == "white":
+            return white_total - black_total
+        else:
+            return black_total - white_total
 
     def _update_moveset(self):
         """Collects all possible moves of the current player."""
